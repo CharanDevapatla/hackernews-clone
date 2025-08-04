@@ -1,0 +1,56 @@
+<div class="container">
+  <div class="search-bar">
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      (keyup.enter)="onSearch()"
+      placeholder="Search stories..."
+      class="search-input"
+    />
+    <button (click)="onSearch()" class="btn">Search</button>
+  </div>
+
+  <div class="content">
+    <div *ngIf="isLoading" class="loading">Loading...</div>
+    
+    <div *ngIf="errorMsg" class="error">{{ errorMsg }}</div>
+    
+    <div *ngIf="!isLoading && !errorMsg && stories.length === 0" class="no-results">
+      No stories found
+    </div>
+
+    <ul *ngIf="!isLoading && stories.length > 0" class="stories">
+      <li *ngFor="let story of stories" class="story">
+        <a [href]="getUrl(story)" target="_blank" class="story-title">
+          {{ story.title }}
+        </a>
+        <div class="meta">
+          <span>{{ story.score }} pts</span>
+          <span>{{ story.author }}</span>
+          <span>{{ story.publishedDate | date:'short' }}</span>
+          <span>{{ story.commentsCount }} comments</span>
+        </div>
+      </li>
+    </ul>
+
+    <div *ngIf="!isLoading && totalPages > 1" class="pagination">
+      <button 
+        (click)="changePage(page - 1)" 
+        [disabled]="page === 1"
+        class="btn"
+      >
+        Prev
+      </button>
+      
+      <span>{{ page }} / {{ totalPages }}</span>
+      
+      <button 
+        (click)="changePage(page + 1)" 
+        [disabled]="page === totalPages"
+        class="btn"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</div>
