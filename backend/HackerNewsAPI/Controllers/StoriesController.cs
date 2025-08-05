@@ -29,12 +29,12 @@ namespace HackerNewsAPI.Controllers
             try
             {
                 var stories = await _service.GetNewestStoriesAsync(page, size, search);
-                return stories;
+                return Ok(stories);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to fetch stories");
-                return Problem("Something went wrong");
+                return StatusCode(500, "Something went wrong");
             }
         }
 
@@ -44,12 +44,12 @@ namespace HackerNewsAPI.Controllers
             try
             {
                 var story = await _service.GetStoryByIdAsync(id);
-                return story != null ? story : NotFound();
+                return story != null ? Ok(story) : NotFound();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to fetch story {Id}", id);
-                return Problem("Something went wrong");
+                return StatusCode(500, "Something went wrong");
             }
         }
     }
