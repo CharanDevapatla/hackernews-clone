@@ -14,26 +14,27 @@ describe('StoryList', () => {
       id: 1,
       title: 'Test Story 1',
       url: 'https://example.com/1',
-      by: 'testuser1',
-      time: 1640995200,
+      author: 'testuser1',
+      publishedDate: '2022-01-01T00:00:00Z',
       score: 100,
-      type: 'story'
+      commentsCount: 25
     },
     {
       id: 2,
       title: 'Test Story 2',
-      by: 'testuser2',
-      time: 1640995300,
+      author: 'testuser2',
+      publishedDate: '2022-01-01T00:01:40Z',
       score: 50,
-      type: 'story'
+      commentsCount: 10
     }
   ];
 
   const mockResponse: StoryResponse = {
-    stories: mockStories,
+    items: mockStories,
     totalCount: 2,
     pageNumber: 1,
-    pageSize: 20
+    pageSize: 20,
+    totalPages: 1
   };
 
   beforeEach(async () => {
@@ -61,10 +62,10 @@ describe('StoryList', () => {
 
     component.ngOnInit();
 
-    expect(mockStoryService.getStories).toHaveBeenCalledWith(1, 20, '');
+    expect(mockStoryService.getStories).toHaveBeenCalledWith(1, 20, undefined);
     expect(component.stories).toEqual(mockStories);
     expect(component.totalPages).toBe(1);
-    expect(component.loading).toBeFalse();
+    expect(component.isLoading).toBeFalse();
   });
 
   it('should handle error when loading stories', () => {
@@ -72,49 +73,53 @@ describe('StoryList', () => {
 
     component.ngOnInit();
 
-    expect(component.error).toBe('Failed to load stories. Please try again.');
-    expect(component.loading).toBeFalse();
+    expect(component.errorMsg).toBe('Could not load stories');
+    expect(component.isLoading).toBeFalse();
     expect(component.stories).toEqual([]);
   });
 
   it('should search stories', () => {
     mockStoryService.getStories.and.returnValue(of(mockResponse));
-    component.searchTerm = 'test';
-    component.currentPage = 2;
+    component.searchQuery = 'test';
+    component.pageNumber = 2;
 
-    component.search();
+    component.onSearch();
 
-    expect(component.currentPage).toBe(1);
+    expect(component.pageNumber).toBe(1);
     expect(mockStoryService.getStories).toHaveBeenCalledWith(1, 20, 'test');
   });
 
   it('should go to next page', () => {
     mockStoryService.getStories.and.returnValue(of(mockResponse));
     component.totalPages = 5;
-    component.currentPage = 1;
+    component.pageNumber = 1;
+    component.searchQuery = '';
 
-    component.goToPage(2);
+    component.changePage(2);
 
-    expect(component.currentPage).toBe(2);
+    expect(component.pageNumber).toBe(2);
     expect(mockStoryService.getStories).toHaveBeenCalledWith(2, 20, '');
   });
 
   it('should not go to invalid page', () => {
     component.totalPages = 5;
-    component.currentPage = 1;
+    component.pageNumber = 1;
 
-    component.goToPage(0);
-    expect(component.currentPage).toBe(1);
+    component.changePage(0);
+    expect(component.pageNumber).toBe(1);
 
-    component.goToPage(6);
-    expect(component.currentPage).toBe(1);
+    component.changePage(6);
+    expect(component.pageNumber).toBe(1);
   });
 
   it('should get story URL', () => {
     const storyWithUrl = mockStories[0];
-    const storyWithoutUrl = mockStories[1];
+    const storyWithoutUrl: Story = {
+      ...mockStories[1],
+      url: undefined
+    };
 
-    expect(component.getStoryUrl(storyWithUrl)).toBe('https://example.com/1');
-    expect(component.getStoryUrl(storyWithoutUrl)).toBe('https://news.ycombinator.com/item?id=2');
+    expect(component.getUrl(storyWithUrl)).toBe('https://example.com/1');
+    expect(component.getUrl(storyWithoutUrl)).toBe('https://news.ycombinator.com/item?id=2');
   });
 });

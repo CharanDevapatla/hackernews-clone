@@ -23,36 +23,61 @@ namespace HackerNewsAPI.Services
             _logger = logger;
         }
 
-        public async Task<PagedResult<StoryDto>> GetNewestStoriesAsync(int page, int size, string search = null)
+        public async Task<PagedResult<StoryDto>> GetNewestStoriesAsync(int pageNumber, int pageSize, string search = null)
         {
             var ids = await GetStoryIds();
-            var tasks = ids.Select(GetStoryByIdAsync);
-            var results = await Task.WhenAll(tasks);
             
-            var stories = results.Where(s => s != null).ToList();
-
             if (!string.IsNullOrEmpty(search))
             {
+                var allStoriesCacheKey = "all_stories_cache";
+                List<StoryDto> allStories;
+                
+                if (!_cache.TryGetValue<List<StoryDto>>(allStoriesCacheKey, out allStories))
+                {
+                    var tasks = ids.Take(200).Select(GetStoryByIdAsync);
+                    var results = await Task.WhenAll(tasks);
+                    allStories = results.Where(s => s != null).ToList();
+                    _cache.Set(allStoriesCacheKey, allStories, TimeSpan.FromMinutes(10));
+                }
+                
                 var term = search.ToLower();
-                stories = stories.Where(s => 
+                var filteredStories = allStories.Where(s => 
                     s.Title.ToLower().Contains(term) || 
                     s.Author.ToLower().Contains(term)
                 ).ToList();
+                
+                var total = filteredStories.Count;
+                var items = filteredStories.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+                
+                return new PagedResult<StoryDto>
+                {
+                    Items = items,
+                    TotalCount = total,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
             }
-
-            var total = stories.Count;
-            var items = stories.Skip((page - 1) * size).Take(size).ToList();
-
-            return new PagedResult<StoryDto>
+            else
             {
-                Items = items,
-                TotalCount = total,
-                PageNumber = page,
-                PageSize = size
-            };
+                var startIndex = (pageNumber - 1) * pageSize;
+                var endIndex = Math.Min(startIndex + pageSize * 2, ids.Count);
+                var pageIds = ids.Skip(startIndex).Take(endIndex - startIndex).ToList();
+                
+                var tasks = pageIds.Select(GetStoryByIdAsync);
+                var results = await Task.WhenAll(tasks);
+                var stories = results.Where(s => s != null).Take(pageSize).ToList();
+                
+                return new PagedResult<StoryDto>
+                {
+                    Items = stories,
+                    TotalCount = ids.Count,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+            }
         }
 
-        public async Task<StoryDto> GetStoryByIdAsync(int id)
+        private async Task<StoryDto> GetStoryByIdAsync(int id)
         {
             var key = string.Format(STORY_KEY, id);
             

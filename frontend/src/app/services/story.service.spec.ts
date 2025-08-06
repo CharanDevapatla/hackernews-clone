@@ -29,10 +29,11 @@ describe("StoryService", () => {
 
   it("should get stories with default parameters", () => {
     const mockResponse: StoryResponse = {
-      stories: [],
+      items: [],
       totalCount: 0,
       pageNumber: 1,
       pageSize: 20,
+      totalPages: 0
     };
 
     service.getStories().subscribe((response) => {
@@ -40,7 +41,7 @@ describe("StoryService", () => {
     });
 
     const req = httpMock.expectOne(
-      "http://localhost:5091/api/stories?pageNumber=1&pageSize=20",
+      "http://localhost:5091/api/stories/newest?pageNumber=1&pageSize=20",
     );
     expect(req.request.method).toBe("GET");
     req.flush(mockResponse);
@@ -48,10 +49,11 @@ describe("StoryService", () => {
 
   it("should get stories with custom parameters", () => {
     const mockResponse: StoryResponse = {
-      stories: [],
+      items: [],
       totalCount: 0,
       pageNumber: 2,
       pageSize: 10,
+      totalPages: 0
     };
 
     service.getStories(2, 10, "angular").subscribe((response) => {
@@ -59,7 +61,7 @@ describe("StoryService", () => {
     });
 
     const req = httpMock.expectOne(
-      "http://localhost:5091/api/stories?pageNumber=2&pageSize=10&search=angular",
+      "http://localhost:5091/api/stories/newest?pageNumber=2&pageSize=10&search=angular",
     );
     expect(req.request.method).toBe("GET");
     req.flush(mockResponse);
@@ -67,10 +69,11 @@ describe("StoryService", () => {
 
   it("should handle search term with spaces", () => {
     const mockResponse: StoryResponse = {
-      stories: [],
+      items: [],
       totalCount: 0,
       pageNumber: 1,
       pageSize: 20,
+      totalPages: 0
     };
 
     service.getStories(1, 20, "hello world").subscribe((response) => {
@@ -78,7 +81,7 @@ describe("StoryService", () => {
     });
 
     const req = httpMock.expectOne(
-      "http://localhost:5091/api/stories?pageNumber=1&pageSize=20&search=hello%20world",
+      "http://localhost:5091/api/stories/newest?pageNumber=1&pageSize=20&search=hello%20world",
     );
     expect(req.request.method).toBe("GET");
     req.flush(mockResponse);

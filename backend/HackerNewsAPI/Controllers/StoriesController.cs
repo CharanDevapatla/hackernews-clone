@@ -19,36 +19,21 @@ namespace HackerNewsAPI.Controllers
 
         [HttpGet("newest")]
         public async Task<ActionResult<PagedResult<StoryDto>>> GetNewest(
-            [FromQuery] int page = 1,
-            [FromQuery] int size = 20,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 20,
             [FromQuery] string search = null)
         {
-            page = Math.Max(1, page);
-            size = Math.Clamp(size, 1, 100);
+            pageNumber = Math.Max(1, pageNumber);
+            pageSize = Math.Clamp(pageSize, 1, 100);
 
             try
             {
-                var stories = await _service.GetNewestStoriesAsync(page, size, search);
+                var stories = await _service.GetNewestStoriesAsync(pageNumber, pageSize, search);
                 return Ok(stories);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to fetch stories");
-                return StatusCode(500, "Something went wrong");
-            }
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<StoryDto>> GetById(int id)
-        {
-            try
-            {
-                var story = await _service.GetStoryByIdAsync(id);
-                return story != null ? Ok(story) : NotFound();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to fetch story {Id}", id);
                 return StatusCode(500, "Something went wrong");
             }
         }

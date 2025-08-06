@@ -35,18 +35,18 @@
 
     <div *ngIf="!isLoading && totalPages > 1" class="pagination">
       <button 
-        (click)="changePage(page - 1)" 
-        [disabled]="page === 1"
+        (click)="changePage(pageNumber - 1)" 
+        [disabled]="pageNumber === 1"
         class="btn"
       >
         Prev
       </button>
       
-      <span>{{ page }} / {{ totalPages }}</span>
+      <span>{{ pageNumber }} / {{ totalPages }}</span>
       
       <button 
-        (click)="changePage(page + 1)" 
-        [disabled]="page === totalPages"
+        (click)="changePage(pageNumber + 1)" 
+        [disabled]="pageNumber === totalPages"
         class="btn"
       >
         Next

@@ -64,7 +64,7 @@ namespace HackerNewsAPI.Tests.Controllers
             _serviceMock.Setup(s => s.GetNewestStoriesAsync(1, 20, searchTerm))
                        .ReturnsAsync(expectedResult);
 
-            var result = await _controller.GetNewest(1, 20, searchTerm);
+            var result = await _controller.GetNewest(pageNumber: 1, pageSize: 20, search: searchTerm);
 
             var okResult = Assert.IsType<OkObjectResult>(result.Result);
             var actualResult = Assert.IsType<PagedResult<StoryDto>>(okResult.Value);
@@ -86,7 +86,7 @@ namespace HackerNewsAPI.Tests.Controllers
             _serviceMock.Setup(s => s.GetNewestStoriesAsync(1, 20, null))
                        .ReturnsAsync(expectedResult);
 
-            var result = await _controller.GetNewest(-1, 20);
+            var result = await _controller.GetNewest(pageNumber: -1, pageSize: 20);
 
             _serviceMock.Verify(s => s.GetNewestStoriesAsync(1, 20, null), Times.Once);
         }
@@ -105,45 +105,11 @@ namespace HackerNewsAPI.Tests.Controllers
             _serviceMock.Setup(s => s.GetNewestStoriesAsync(1, 100, null))
                        .ReturnsAsync(expectedResult);
 
-            var result = await _controller.GetNewest(1, 200);
+            var result = await _controller.GetNewest(pageNumber: 1, pageSize: 200);
 
             _serviceMock.Verify(s => s.GetNewestStoriesAsync(1, 100, null), Times.Once);
         }
 
-        [Fact]
-        public async Task GetStory_ExistingStory_ReturnsOkResult()
-        {
-            var storyId = 123;
-            var expectedStory = new StoryDto
-            {
-                Id = storyId,
-                Title = "Test Story",
-                Author = "testuser"
-            };
-
-            _serviceMock.Setup(s => s.GetStoryByIdAsync(storyId))
-                       .ReturnsAsync(expectedStory);
-
-            var result = await _controller.GetById(storyId);
-
-            var okResult = Assert.IsType<OkObjectResult>(result.Result);
-            var actualStory = Assert.IsType<StoryDto>(okResult.Value);
-            Assert.Equal(storyId, actualStory.Id);
-            Assert.Equal("Test Story", actualStory.Title);
-        }
-
-        [Fact]
-        public async Task GetStory_NonExistentStory_ReturnsNotFound()
-        {
-            var storyId = 999;
-
-            _serviceMock.Setup(s => s.GetStoryByIdAsync(storyId))
-                       .ReturnsAsync((StoryDto)null);
-
-            var result = await _controller.GetById(storyId);
-
-            Assert.IsType<NotFoundResult>(result.Result);
-        }
 
         [Fact]
         public async Task GetNewestStories_ServiceThrowsException_ReturnsInternalServerError()

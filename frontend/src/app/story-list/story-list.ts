@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StoryService } from '../services/story.service';
@@ -13,13 +13,12 @@ import { Story } from '../models/story.model';
 export class StoryList implements OnInit {
   stories: Story[] = [];
   searchQuery = '';
-  page = 1;
-  size = 20;
+  pageNumber = 1;
+  pageSize = 20;
   totalPages = 0;
   isLoading = false;
   errorMsg = '';
-
-  constructor(private service: StoryService) {}
+  private service = inject(StoryService);
 
   ngOnInit() {
     this.fetchStories();
@@ -29,7 +28,7 @@ export class StoryList implements OnInit {
     this.isLoading = true;
     this.errorMsg = '';
     
-    this.service.getStories(this.page, this.size, this.searchQuery)
+    this.service.getStories(this.pageNumber, this.pageSize, this.searchQuery)
       .subscribe({
         next: (data) => {
           this.stories = data.items;
@@ -44,13 +43,13 @@ export class StoryList implements OnInit {
   }
 
   onSearch() {
-    this.page = 1;
+    this.pageNumber = 1;
     this.fetchStories();
   }
 
   changePage(newPage: number) {
     if (newPage >= 1 && newPage <= this.totalPages) {
-      this.page = newPage;
+      this.pageNumber = newPage;
       this.fetchStories();
     }
   }
